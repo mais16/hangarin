@@ -1,0 +1,86 @@
+{% extends "tasks/base.html" %}
+
+{% block title %}{{ action }} Task{% endblock %}
+{% block page_title %}{{ action }} Task{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'task_list' %}{% endif %}" class="btn btn-secondary">← Cancel</a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .form-card { max-width: 700px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  select.form-input option { background: var(--surface2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+  <div style="margin-bottom:24px;">
+    <h2 style="font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--text);">
+      {{ action }} Task
+    </h2>
+    <p style="font-size:13px; color:var(--text3); margin-top:4px;">
+      {% if action == "Create" %}Fill in the details below to create a new task.{% else %}Update the details for this task.{% endif %}
+    </p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Title *</label>
+        {{ form.title }}
+        {% if form.title.errors %}<p style="color:var(--red);font-size:12px;margin-top:4px;">{{ form.title.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="form-group full">
+        <label class="form-label">Description</label>
+        {{ form.description }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        {{ form.status }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Deadline</label>
+        {{ form.deadline }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        {{ form.priority }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        {{ form.category }}
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button type="submit" class="btn btn-primary">
+        {% if action == "Create" %}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Task
+        {% else %}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Changes
+        {% endif %}
+      </button>
+      <a href="{% if task %}{% url 'task_detail' task.pk %}{% else %}{% url 'task_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

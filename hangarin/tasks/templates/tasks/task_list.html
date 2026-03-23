@@ -1,0 +1,186 @@
+{% extends "tasks/base.html" %}
+
+{% block title %}Tasks{% endblock %}
+{% block page_title %}All Tasks{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'task_create' %}" class="btn btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Task
+  </a>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .results-count {
+    font-size: 13px;
+    color: var(--text3);
+  }
+  .sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sort-link:hover { color: var(--text2); }
+  .sort-arrow { font-size: 10px; }
+  .action-btns { display: flex; gap: 6px; }
+  .truncate { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<form method="get" class="filter-bar">
+  <input
+    type="text"
+    name="q"
+    class="form-input"
+    placeholder="Search tasks..."
+    value="{{ search_query }}"
+    style="flex:1; min-width:200px;"
+  >
+  <select name="status" class="form-input">
+    <option value="">All Status</option>
+    <option value="Pending" {% if status_filter == "Pending" %}selected{% endif %}>Pending</option>
+    <option value="In Progress" {% if status_filter == "In Progress" %}selected{% endif %}>In Progress</option>
+    <option value="Completed" {% if status_filter == "Completed" %}selected{% endif %}>Completed</option>
+  </select>
+  <select name="priority" class="form-input">
+    <option value="">All Priority</option>
+    {% for p in priorities %}
+      <option value="{{ p.id }}" {% if priority_filter == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="category" class="form-input">
+    <option value="">All Category</option>
+    {% for c in categories %}
+      <option value="{{ c.id }}" {% if category_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-secondary">Filter</button>
+  {% if search_query or status_filter or priority_filter or category_filter %}
+    <a href="{% url 'task_list' %}" class="btn btn-secondary">Clear</a>
+  {% endif %}
+</form>
+
+<div class="results-header">
+  <span class="results-count">{{ total_count }} task{{ total_count|pluralize }} found</span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>
+          <a href="?q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={% if sort_by == 'title' %}-title{% else %}title{% endif %}" class="sort-link">
+            Title {% if sort_by == 'title' %}<span class="sort-arrow">↑</span>{% elif sort_by == '-title' %}<span class="sort-arrow">↓</span>{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={% if sort_by == 'status' %}-status{% else %}status{% endif %}" class="sort-link">
+            Status {% if sort_by == 'status' %}<span class="sort-arrow">↑</span>{% elif sort_by == '-status' %}<span class="sort-arrow">↓</span>{% endif %}
+          </a>
+        </th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>
+          <a href="?q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={% if sort_by == 'deadline' %}-deadline{% else %}deadline{% endif %}" class="sort-link">
+            Deadline {% if sort_by == 'deadline' %}<span class="sort-arrow">↑</span>{% elif sort_by == '-deadline' %}<span class="sort-arrow">↓</span>{% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="?q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={% if sort_by == 'created_at' %}-created_at{% else %}created_at{% endif %}" class="sort-link">
+            Created {% if sort_by == 'created_at' %}<span class="sort-arrow">↑</span>{% elif sort_by == '-created_at' %}<span class="sort-arrow">↓</span>{% endif %}
+          </a>
+        </th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in page_obj %}
+        <tr>
+          <td>
+            <a href="{% url 'task_detail' task.pk %}" class="td-title truncate" style="text-decoration:none; color:var(--text)">
+              {{ task.title }}
+            </a>
+          </td>
+          <td>
+            {% if task.status == "Completed" %}
+              <span class="badge badge-completed">Completed</span>
+            {% elif task.status == "In Progress" %}
+              <span class="badge badge-progress">In Progress</span>
+            {% else %}
+              <span class="badge badge-pending">Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ task.priority.name|default:"—" }}</td>
+          <td>{{ task.category.name|default:"—" }}</td>
+          <td>
+            {% if task.deadline %}
+              {% if task.is_overdue %}
+                <span style="color:var(--red); font-size:13px;">{{ task.deadline|date:"M d, Y" }}</span>
+              {% else %}
+                {{ task.deadline|date:"M d, Y" }}
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ task.created_at|date:"M d, Y" }}</td>
+          <td>
+            <div class="action-btns">
+              <a href="{% url 'task_detail' task.pk %}" class="btn-icon" title="View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </a>
+              <a href="{% url 'task_update' task.pk %}" class="btn-icon" title="Edit">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              <form method="post" action="{% url 'task_delete' task.pk %}" style="display:inline;" onsubmit="return confirm('Delete this task?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon" style="border:none;background:var(--red-dim);" title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center; padding:40px; color:var(--text3);">
+            No tasks found.
+            {% if not search_query and not status_filter %}
+              <a href="{% url 'task_create' %}" style="color:var(--accent)">Create your first task →</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={{ sort_by }}">‹</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="page-link active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a class="page-link" href="?page={{ num }}&q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={{ sort_by }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&priority={{ priority_filter }}&category={{ category_filter }}&sort={{ sort_by }}">›</a>
+      {% endif %}
+      <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
