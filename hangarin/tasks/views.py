@@ -5,10 +5,10 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Task, SubTask, Note, Category, Priority
 from .forms import TaskForm, SubTaskForm, NoteForm, CategoryForm, PriorityForm
-
+from django.contrib.auth.decorators import login_required
 
 # ─── Dashboard ────────────────────────────────────────────────────────────────
-
+@login_required
 def dashboard(request):
     total_tasks = Task.objects.count()
     completed_tasks = Task.objects.filter(status="Completed").count()
@@ -39,7 +39,7 @@ def dashboard(request):
 
 
 # ─── Task List ────────────────────────────────────────────────────────────────
-
+@login_required
 def task_list(request):
     tasks = Task.objects.select_related('category', 'priority')
 
@@ -102,7 +102,7 @@ def task_list(request):
 
 
 # ─── Task Detail ──────────────────────────────────────────────────────────────
-
+@login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
     subtasks = task.subtasks.all()
@@ -123,7 +123,7 @@ def task_detail(request, pk):
 
 
 # ─── Task Create ──────────────────────────────────────────────────────────────
-
+@login_required
 def task_create(request):
     if request.method == 'POST':
         form = TaskForm(request.POST)
@@ -137,7 +137,7 @@ def task_create(request):
 
 
 # ─── Task Update ──────────────────────────────────────────────────────────────
-
+@login_required
 def task_update(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == 'POST':
@@ -152,7 +152,7 @@ def task_update(request, pk):
 
 
 # ─── Task Delete ──────────────────────────────────────────────────────────────
-
+@login_required
 def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if request.method == 'POST':
@@ -164,7 +164,7 @@ def task_delete(request, pk):
 
 
 # ─── SubTask CRUD ─────────────────────────────────────────────────────────────
-
+@login_required
 def subtask_create(request, task_pk):
     task = get_object_or_404(Task, pk=task_pk)
     if request.method == 'POST':
@@ -176,7 +176,7 @@ def subtask_create(request, task_pk):
             messages.success(request, 'Sub-task added!')
     return redirect('task_detail', pk=task_pk)
 
-
+@login_required
 def subtask_update(request, pk):
     subtask = get_object_or_404(SubTask, pk=pk)
     if request.method == 'POST':
@@ -186,7 +186,7 @@ def subtask_update(request, pk):
             messages.success(request, 'Sub-task updated!')
     return redirect('task_detail', pk=subtask.parent_task.pk)
 
-
+@login_required
 def subtask_delete(request, pk):
     subtask = get_object_or_404(SubTask, pk=pk)
     task_pk = subtask.parent_task.pk
@@ -195,7 +195,7 @@ def subtask_delete(request, pk):
         messages.success(request, 'Sub-task deleted.')
     return redirect('task_detail', pk=task_pk)
 
-
+@login_required
 def subtask_toggle(request, pk):
     """Quick toggle subtask status via AJAX or direct POST."""
     subtask = get_object_or_404(SubTask, pk=pk)
@@ -210,7 +210,7 @@ def subtask_toggle(request, pk):
 
 
 # ─── Note CRUD ────────────────────────────────────────────────────────────────
-
+@login_required
 def note_create(request, task_pk):
     task = get_object_or_404(Task, pk=task_pk)
     if request.method == 'POST':
@@ -222,7 +222,7 @@ def note_create(request, task_pk):
             messages.success(request, 'Note added!')
     return redirect('task_detail', pk=task_pk)
 
-
+@login_required
 def note_delete(request, pk):
     note = get_object_or_404(Note, pk=pk)
     task_pk = note.task.pk
@@ -233,7 +233,7 @@ def note_delete(request, pk):
 
 
 # ─── Category CRUD ────────────────────────────────────────────────────────────
-
+@login_required
 def category_list(request):
     search_query = request.GET.get('q', '')
     categories = Category.objects.annotate(task_count=Count('tasks'))
@@ -248,7 +248,7 @@ def category_list(request):
         'search_query': search_query,
     })
 
-
+@login_required
 def category_create(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -260,7 +260,7 @@ def category_create(request):
         form = CategoryForm()
     return render(request, 'tasks/category_form.html', {'form': form, 'action': 'Create'})
 
-
+@login_required
 def category_update(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -273,7 +273,7 @@ def category_update(request, pk):
         form = CategoryForm(instance=category)
     return render(request, 'tasks/category_form.html', {'form': form, 'action': 'Update', 'category': category})
 
-
+@login_required
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -284,7 +284,7 @@ def category_delete(request, pk):
 
 
 # ─── Priority CRUD ────────────────────────────────────────────────────────────
-
+@login_required
 def priority_list(request):
     search_query = request.GET.get('q', '')
     priorities = Priority.objects.annotate(task_count=Count('tasks'))
@@ -299,7 +299,7 @@ def priority_list(request):
         'search_query': search_query,
     })
 
-
+@login_required
 def priority_create(request):
     if request.method == 'POST':
         form = PriorityForm(request.POST)
@@ -311,7 +311,7 @@ def priority_create(request):
         form = PriorityForm()
     return render(request, 'tasks/priority_form.html', {'form': form, 'action': 'Create'})
 
-
+@login_required
 def priority_update(request, pk):
     priority = get_object_or_404(Priority, pk=pk)
     if request.method == 'POST':
@@ -324,7 +324,7 @@ def priority_update(request, pk):
         form = PriorityForm(instance=priority)
     return render(request, 'tasks/priority_form.html', {'form': form, 'action': 'Update', 'priority': priority})
 
-
+@login_required
 def priority_delete(request, pk):
     priority = get_object_or_404(Priority, pk=pk)
     if request.method == 'POST':

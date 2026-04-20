@@ -7,5 +7,6 @@ admin.site.index_title = "To-Do Manager Administration"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('', include('tasks.urls')),
 ]
