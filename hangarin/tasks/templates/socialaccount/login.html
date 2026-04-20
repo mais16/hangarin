@@ -1,0 +1,32 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirm Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdf8f4; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; border: 1px solid #f0e0d0; border-radius: 14px; padding: 40px 36px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 2px 16px rgba(180,100,40,0.07); }
+    h2 { font-size: 20px; font-weight: 800; color: #2c1a0e; margin-bottom: 8px; }
+    p { font-size: 14px; color: #7a5540; margin-bottom: 28px; }
+    p strong { color: #f97316; }
+    .btn { display: block; width: 100%; padding: 11px; background: #f97316; color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+    .btn:hover { background: #ea6a05; }
+    .btn-cancel { display: block; width: 100%; padding: 11px; background: #fff; color: #7a5540; border: 1px solid #e8cdb8; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: none; }
+    .btn-cancel:hover { background: #fff7f0; color: #f97316; border-color: #f97316; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>Confirm Sign In</h2>
+  <p>You are about to sign in using your <strong>{{ provider.name }}</strong> account.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn">Continue with {{ provider.name }}</button>
+  </form>
+  <a href="{% url 'account_login' %}" class="btn-cancel">Cancel</a>
+</div>
+</body>
+</html>
